@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="my">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#02040a">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Our Little Universe — a quiet journey through shared memories.">
+  <title>Our Little Universe</title>
+  <style>
+    :root {
+      --void: #010207;
+      --deep: #030713;
+      --mist: rgba(211, 226, 255, .72);
+      --soft: rgba(255, 255, 255, .62);
+      --muted: rgba(255, 255, 255, .42);
+      --line: rgba(218, 232, 255, .15);
+      --glass: rgba(12, 19, 35, .54);
+      --ease-out: cubic-bezier(.16, 1, .3, 1);
+      --ease-in-out: cubic-bezier(.77, 0, .175, 1);
+      --app-height: 100dvh;
+      --safe-top: max(1rem, env(safe-area-inset-top));
+      --safe-bottom: max(1.15rem, env(safe-area-inset-bottom));
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; background: var(--void); }
+    body {
+      overflow: hidden;
+      color: #fff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    button { font: inherit; }
+    button:focus-visible { outline: 2px solid rgba(234, 244, 255, .95); outline-offset: 4px; }
+    .mm-text { font-family: "Noto Sans Myanmar", "Myanmar Text", Inter, system-ui, sans-serif; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+    .universe-app {
+      position: relative;
+      isolation: isolate;
+      width: 100%;
+      height: var(--app-height);
+      min-height: 100svh;
+      overflow: hidden;
+      background: radial-gradient(ellipse at 50% 44%, #0b1530 0%, #040917 34%, var(--void) 78%);
+      touch-action: manipulation;
+    }
+    .scene {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(1.018);
+      transition: opacity 760ms var(--ease-out), transform 1100ms var(--ease-out), visibility 0s linear 760ms;
+    }
+    .scene.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: scale(1);
+      transition: opacity 760ms var(--ease-out), transform 1100ms var(--ease-out), visibility 0s linear 0s;
+    }
+    .scene-canvas { position:absolute; inset:0; display:block; width:100%; height:100%; pointer-events:none; }
+
+    .cosmic-atmosphere { position:absolute; inset:0; z-index:1; overflow:hidden; pointer-events:none; }
+    .nebula { position:absolute; width:70vmax; height:70vmax; border-radius:50%; filter:blur(70px); opacity:.12; mix-blend-mode:screen; }
+    .nebula--one { top:-42vmax; left:-34vmax; background:#3a6cae; animation: drift-one 20s ease-in-out infinite alternate; }
+    .nebula--two { bottom:-45vmax; right:-35vmax; background:#493b88; animation: drift-two 24s ease-in-out infinite alternate; }
+    .nebula--three { top:25%; left:25%; width:44vmax; height:44vmax; background:#8a9dca; opacity:.055; animation: drift-three 16s ease-in-out infinite alternate; }
+    .cosmic-vignette { position:absolute; inset:0; background:radial-gradient(ellipse at center, transparent 32%, rgba(0,0,0,.16) 62%, rgba(0,0,0,.75) 100%); }
+    @keyframes drift-one { to { transform:translate(6vw,5vh) scale(1.08); } }
+    @keyframes drift-two { to { transform:translate(-7vw,-4vh) scale(1.1); } }
+    @keyframes drift-three { to { transform:translate(5vw,-2vh) scale(.9); } }
+
+    /* Opening */
+    .scene--opening { z-index:10; background:radial-gradient(circle at 50% 48%, rgba(42,74,120,.13), transparent 31%), linear-gradient(180deg, #010207, #030713 60%, #010207); }
+    .opening-content { position:absolute; z-index:3; top:48%; left:50%; display:grid; justify-items:center; width:min(88vw, 620px); transform:translate(-50%,-50%); text-align:center; }
+    .opening-message { margin:0 0 2.1rem; }
+    .opening-message p { margin:0; text-shadow:0 0 26px rgba(210,228,255,.12); }
+    .opening-message__line--small { color:var(--soft); font-size:clamp(1rem, 4vw, 1.35rem); line-height:1.8; }
+    .opening-message__line--large { color:rgba(255,255,255,.94); font-size:clamp(1.65rem, 6vw, 2.45rem); font-weight:500; line-height:1.5; letter-spacing:-.02em; }
+    .opening-energy { position:absolute; z-index:1; top:50%; left:50%; width:16rem; height:10rem; transform:translate(-50%,-26%); pointer-events:none; }
+    .energy-core { position:absolute; top:50%; left:50%; width:6rem; height:6rem; border-radius:50%; transform:translate(-50%,-50%); background:radial-gradient(circle, rgba(255,255,255,.15), rgba(178,210,255,.06) 38%, transparent 70%); filter:blur(9px); animation: breath 4.5s ease-in-out infinite; }
+    .energy-ring { position:absolute; top:50%; left:50%; border:1px solid rgba(186,214,255,.12); border-radius:50%; transform:translate(-50%,-50%); }
+    .energy-ring--one { width:9.5rem; height:5.5rem; animation:ring-one 5s ease-in-out infinite; }
+    .energy-ring--two { width:13rem; height:7.2rem; opacity:.6; animation:ring-two 7s ease-in-out infinite; }
+    .energy-ring--three { width:16rem; height:9rem; opacity:.23; animation:ring-three 9s ease-in-out infinite; }
+    @keyframes breath { 50% { transform:translate(-50%,-50%) scale(1.16); opacity:.9; } }
+    @keyframes ring-one { 50% { transform:translate(-50%,-50%) scale(1.08); opacity:.6; } }
+    @keyframes ring-two { 50% { transform:translate(-50%,-50%) rotate(8deg) scale(1.04); } }
+    @keyframes ring-three { 50% { transform:translate(-50%,-50%) rotate(-10deg) scale(1.06); } }
+    .particle-button { position:relative; z-index:3; display:grid; place-items:center; width:9.7rem; height:3.75rem; padding:0; border:0; border-radius:999px; background:transparent; color:#fff; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:transform 160ms var(--ease-out), opacity 360ms var(--ease-out); }
+    .particle-button:active { transform:scale(.965); }
+    .particle-button[disabled] { pointer-events:none; }
+    .particle-button__aura { position:absolute; inset:-1.1rem; border-radius:inherit; background:radial-gradient(ellipse, rgba(142,188,255,.2), rgba(111,145,255,.05) 44%, transparent 72%); filter:blur(14px); transition:transform 300ms var(--ease-out), opacity 300ms var(--ease-out); }
+    .particle-button__surface { position:absolute; inset:0; border:1px solid rgba(255,255,255,.21); border-radius:inherit; background:linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.035)); box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 0 26px rgba(106,158,255,.14); backdrop-filter:blur(12px); }
+    .particle-button__border { position:absolute; inset:-1px; padding:1px; border-radius:inherit; opacity:.7; background:conic-gradient(from 0deg, transparent, rgba(255,255,255,.45), rgba(130,180,255,.2), transparent 70%); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; animation:spin 7s linear infinite; }
+    .particle-button__orbit { position:absolute; top:50%; left:50%; width:5px; height:5px; border-radius:50%; background:#fff; box-shadow:0 0 9px rgba(255,255,255,.88), 0 0 18px rgba(126,184,255,.6); pointer-events:none; }
+    .particle-button__orbit--one { animation:orbit-one 4.7s linear infinite; }
+    .particle-button__orbit--two { animation:orbit-two 6.2s linear infinite; }
+    .particle-button__orbit--three { animation:orbit-three 7.9s linear infinite; }
+    .particle-button__text { position:relative; z-index:1; color:rgba(255,255,255,.95); font-size:1.1rem; font-weight:500; text-shadow:0 0 14px rgba(255,255,255,.25); }
+    .particle-button:hover .particle-button__aura, .particle-button:focus-visible .particle-button__aura { transform:scale(1.1); opacity:1; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes orbit-one { to { transform:translate(-50%,-50%) rotate(360deg) translateX(5.4rem); } }
+    @keyframes orbit-two { from { transform:translate(-50%,-50%) rotate(125deg) translateX(4.75rem); } to { transform:translate(-50%,-50%) rotate(485deg) translateX(4.75rem); } }
+    @keyframes orbit-three { from { transform:translate(-50%,-50%) rotate(245deg) translateX(6rem); } to { transform:translate(-50%,-50%) rotate(605deg) translateX(6rem); } }
+    .opening-status { position:absolute; z-index:3; bottom:var(--safe-bottom); left:50%; display:flex; align-items:center; gap:.5rem; transform:translateX(-50%); color:rgba(235,241,255,.33); font-size:.62rem; letter-spacing:.18em; text-transform:lowercase; white-space:nowrap; user-select:none; }
+    .opening-status__dot, .memory-hud__status { width:5px; height:5px; border-radius:50%; background:#c9ddff; box-shadow:0 0 10px rgba(152,195,255,.82); animation:status 2.8s ease-in-out infinite; }
+    @keyframes status { 50% { opacity:.45; transform:scale(.7); } }
+
+    /* Shared scene light */
+    .transition-overlay { position:absolute; z-index:100; inset:0; display:grid; place-items:center; pointer-events:none; opacity:0; visibility:hidden; background:#f8fbff; transition:opacity 640ms var(--ease-out), visibility 0s linear 640ms; }
+    .transition-overlay.is-visible { opacity:1; visibility:visible; transition:opacity 640ms var(--ease-out), visibility 0s; }
+    .transition-overlay__core { width:min(90vmax, 960px); aspect-ratio:1; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,1), rgba(236,244,255,.92) 30%, rgba(207,224,255,.22) 52%, transparent 73%); filter:blur(9px); transform:scale(.2); transition:transform 1000ms var(--ease-out); }
+    .transition-overlay.is-visible .transition-overlay__core { transform:scale(1.4); }
+
+    /* Solar system */
+    .scene--solar { z-index:20; background:radial-gradient(ellipse at 50% 42%, rgba(31,54,92,.25), transparent 32%), radial-gradient(ellipse at 50% 40%, #081126 0%, #030713 48%, #010207 100%); }
+    .solar-world { position:absolute; inset:0; z-index:2; pointer-events:none; transform:translate3d(var(--parallax-x,0), var(--parallax-y,0), 0); }
+    .memory-sun { position:absolute; z-index:3; width:4.5rem; height:4.5rem; border-radius:50%; transform:translate(-50%,-50%); pointer-events:none; }
+    .memory-sun__corona, .memory-sun__glow { position:absolute; inset:-2.5rem; border-radius:50%; background:radial-gradient(circle, rgba(255,239,205,.13), rgba(255,206,130,.04) 37%, transparent 71%); filter:blur(6px); animation:sun-breath 5s ease-in-out infinite; }
+    .memory-sun__image { position:absolute; inset:1.1rem; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fffdf5, #ffeecf 37%, rgba(255,197,126,.55) 72%, transparent 100%); box-shadow:0 0 18px rgba(255,226,172,.3); }
+    .memory-sun__glow { inset:-1rem; opacity:.78; filter:blur(11px); }
+    @keyframes sun-breath { 50% { transform:scale(1.12); opacity:.72; } }
+    .planet-system { position:absolute; inset:0; z-index:5; }
+    .memory-planet { position:absolute; z-index:6; width:3rem; height:3rem; margin:-1.5rem; padding:0; border:0; border-radius:50%; background:transparent; color:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation; transition:opacity 280ms var(--ease-out), transform 240ms var(--ease-out); }
+    .memory-planet::before { content:""; position:absolute; inset:.55rem; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,.05), transparent 70%); }
+    .memory-planet:hover::before, .memory-planet:focus-visible::before { box-shadow:0 0 0 1px rgba(238,245,255,.32), 0 0 18px rgba(178,205,255,.22); }
+    .memory-planet__body, .memory-planet__glow { display:none; }
+    .memory-planet.is-muted { opacity:.28; }
+    .memory-planet.is-awake { transform:scale(1.08); }
+    .scene--solar.is-leaving #solar-canvas { filter:brightness(1.2) saturate(.5); }
+    .scene--solar.is-leaving .memory-planet { pointer-events:none; }
+
+    .planet-memory, .memory-detail {
+      position:absolute; z-index:32; left:50%; top:50%; display:grid; grid-template-columns:minmax(4.8rem, 27%) 1fr; gap:1rem; align-items:center; width:min(89vw, 430px); max-height:min(58svh, 410px); padding:1.1rem 2.7rem 1.1rem 1.1rem; border:1px solid rgba(230,239,255,.18); border-radius:1.25rem; background:linear-gradient(135deg, rgba(33,46,75,.73), rgba(9,15,30,.78)); box-shadow:0 18px 70px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.11); backdrop-filter:blur(18px); transform:translate(-50%,-46%) scale(.96); opacity:0; visibility:hidden; pointer-events:none; transition:opacity 340ms var(--ease-out), transform 500ms var(--ease-out), visibility 0s linear 500ms;
+    }
+    .planet-memory.is-visible, .memory-detail.is-visible { opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%,-50%) scale(1); transition:opacity 340ms var(--ease-out), transform 500ms var(--ease-out), visibility 0s; }
+    .planet-memory__image, .memory-detail__image { width:100%; aspect-ratio:1; border-radius:1rem; overflow:hidden; background:radial-gradient(circle at 50% 45%, rgba(255,255,255,.92) 0 2%, rgba(184,212,255,.25) 4%, rgba(119,152,222,.08) 23%, transparent 62%), radial-gradient(circle at 65% 34%, rgba(255,221,183,.22), transparent 38%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.11), 0 0 35px rgba(151,188,255,.09); }
+    .planet-memory__image.has-image, .memory-detail__image.has-image { background-size:cover; background-position:center; filter:saturate(.82) contrast(1.04); }
+    .planet-memory__close, .memory-detail__close { position:absolute; top:.75rem; right:.8rem; display:grid; place-items:center; width:2.45rem; height:2.45rem; padding:0; border:0; border-radius:50%; color:rgba(255,255,255,.82); background:rgba(255,255,255,.06); cursor:pointer; transition:background 160ms var(--ease-out), transform 160ms var(--ease-out); }
+    .planet-memory__close:hover, .memory-detail__close:hover { background:rgba(255,255,255,.13); transform:scale(1.06); }
+    .planet-memory__category, .memory-detail__category { display:block; margin-bottom:.5rem; color:rgba(207,222,255,.58); font-size:.62rem; letter-spacing:.16em; text-transform:uppercase; }
+    .planet-memory__text, .memory-detail__text { max-height:34svh; margin:0; overflow:auto; color:rgba(255,255,255,.93); font-size:clamp(.95rem, 3.7vw, 1.08rem); line-height:1.75; }
+
+    .watch-prompt { position:absolute; z-index:25; right:0; bottom:calc(var(--safe-bottom) + .15rem); left:0; display:grid; justify-items:center; gap:1rem; width:min(92vw, 460px); margin:auto; padding:.7rem .5rem; opacity:0; visibility:hidden; pointer-events:none; transform:translateY(1.2rem); filter:blur(5px); transition:opacity 720ms var(--ease-out), transform 800ms var(--ease-out), filter 720ms var(--ease-out), visibility 0s linear 800ms; }
+    .watch-prompt.is-visible { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0); filter:blur(0); transition:opacity 720ms var(--ease-out), transform 800ms var(--ease-out), filter 720ms var(--ease-out), visibility 0s; }
+    .watch-prompt.is-hiding { opacity:0; pointer-events:none; transform:translateY(.65rem); filter:blur(4px); }
+    .watch-prompt__question { margin:0; color:rgba(255,255,255,.92); font-size:clamp(1.25rem, 5.25vw, 1.75rem); font-weight:400; letter-spacing:-.025em; line-height:1.5; text-align:center; text-shadow:0 0 28px rgba(203,221,255,.13); }
+    .watch-prompt__actions { position:relative; display:flex; align-items:center; justify-content:center; gap:.7rem; min-height:3rem; }
+    .cosmic-action { position:relative; min-width:7.5rem; min-height:2.9rem; padding:.5rem 1.2rem; border:1px solid rgba(227,238,255,.18); border-radius:999px; background:rgba(255,255,255,.055); color:rgba(255,255,255,.92); cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:background 180ms var(--ease-out), border-color 180ms var(--ease-out), transform 160ms var(--ease-out), opacity 200ms var(--ease-out); }
+    .cosmic-action:hover, .cosmic-action:focus-visible { border-color:rgba(244,249,255,.42); background:rgba(255,255,255,.1); }
+    .cosmic-action:active { transform:scale(.97); }
+    .cosmic-action--primary { background:linear-gradient(135deg, rgba(239,246,255,.2), rgba(157,194,255,.13)); box-shadow:inset 0 1px 0 rgba(255,255,255,.16), 0 0 24px rgba(152,192,255,.1); }
+    .runaway-button { will-change:transform; transition:transform 310ms var(--ease-out), background 180ms var(--ease-out), border-color 180ms var(--ease-out); }
+    .runaway-message { min-height:1.1rem; margin:0; color:rgba(222,233,255,.58); font-size:.76rem; text-align:center; opacity:0; transform:translateY(.25rem); transition:opacity 260ms var(--ease-out), transform 260ms var(--ease-out); }
+    .runaway-message.is-visible { opacity:1; transform:translateY(0); }
+
+    /* Love speed */
+    .scene--love-speed { z-index:24; background:#010207; }
+    .love-speed-core { position:absolute; z-index:2; top:50%; left:50%; width:5rem; height:5rem; border-radius:50%; transform:translate(-50%,-50%) scale(.3); background:radial-gradient(circle, #fff 0, rgba(244,249,255,.78) 15%, rgba(202,224,255,.22) 38%, transparent 72%); filter:blur(1px); opacity:0; pointer-events:none; }
+    .scene--love-speed.is-running .love-speed-core { animation:love-core 4.4s var(--ease-in-out) forwards; }
+    @keyframes love-core { 0% { opacity:0; transform:translate(-50%,-50%) scale(.2); } 23% { opacity:.56; transform:translate(-50%,-50%) scale(.55); } 64% { opacity:.88; transform:translate(-50%,-50%) scale(2.7); } 100% { opacity:1; transform:translate(-50%,-50%) scale(12); } }
+
+    /* Memory universe */
+    .scene--memories { z-index:30; background:radial-gradient(ellipse at 50% 40%, rgba(42,60,104,.18), transparent 37%), #02050e; }
+    .memory-atmosphere { position:absolute; inset:0; z-index:1; pointer-events:none; }
+    .memory-nebula { position:absolute; width:68vmax; height:68vmax; border-radius:50%; filter:blur(70px); opacity:.09; }
+    .memory-nebula--one { top:-35vmax; left:-36vmax; background:#5077c0; animation:drift-one 24s ease-in-out infinite alternate; }
+    .memory-nebula--two { right:-38vmax; bottom:-37vmax; background:#83528d; animation:drift-two 26s ease-in-out infinite alternate; }
+    .memory-object-layer { position:absolute; inset:0; z-index:4; }
+    .memory-object { position:absolute; display:grid; place-items:center; width:clamp(3.2rem, 15vw, 5rem); aspect-ratio:1; padding:0; border:0; border-radius:50%; background:transparent; color:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation; opacity:0; transform:translate(-50%,-50%) scale(.72); transition:opacity 720ms var(--ease-out), transform 860ms var(--ease-out); }
+    .memory-object.is-formed { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    .memory-object::before { content:""; position:absolute; inset:20%; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,.95) 0 5%, rgba(218,231,255,.35) 18%, rgba(161,190,245,.12) 44%, transparent 72%); box-shadow:0 0 22px rgba(186,211,255,.15); transition:transform 260ms var(--ease-out), box-shadow 260ms var(--ease-out); }
+    .memory-object::after { content:""; position:absolute; inset:0; border:1px solid rgba(223,237,255,.13); border-radius:48% 52% 50% 47%; opacity:.42; transform:rotate(var(--tilt, 0deg)); }
+    .memory-object:hover::before, .memory-object:focus-visible::before { transform:scale(1.2); box-shadow:0 0 34px rgba(214,230,255,.27); }
+    .memory-object--special::before { background:radial-gradient(circle, rgba(255,255,255,1) 0 5%, rgba(255,233,207,.47) 17%, rgba(206,223,255,.17) 48%, transparent 72%); box-shadow:0 0 38px rgba(255,234,201,.18); }
+    .special-memory-layer { position:absolute; z-index:3; inset:0; pointer-events:none; }
+    .special-memory-layer::before { content:""; position:absolute; top:29%; left:71%; width:8rem; height:8rem; border-radius:50%; transform:translate(-50%,-50%); background:radial-gradient(circle, rgba(255,232,201,.10), transparent 69%); filter:blur(5px); opacity:0; transition:opacity 1s var(--ease-out); }
+    .scene--memories.is-settled .special-memory-layer::before { opacity:1; }
+    .memory-intro { position:absolute; z-index:8; top:var(--safe-top); left:50%; width:min(86vw, 430px); transform:translate(-50%, .9rem); text-align:center; pointer-events:none; opacity:0; filter:blur(5px); transition:opacity 950ms var(--ease-out), transform 1000ms var(--ease-out), filter 800ms var(--ease-out); }
+    .memory-intro.is-visible { opacity:1; transform:translate(-50%, 0); filter:blur(0); }
+    .memory-intro__eyebrow { margin:0 0 .6rem; color:rgba(207,222,255,.47); font-size:.61rem; letter-spacing:.25em; }
+    .memory-intro__title { margin:0; color:rgba(255,255,255,.92); font-size:clamp(1.25rem, 5vw, 1.9rem); font-weight:400; line-height:1.55; text-shadow:0 0 26px rgba(185,208,255,.1); }
+    .memory-hud { position:absolute; z-index:9; left:50%; bottom:var(--safe-bottom); display:flex; align-items:center; gap:.5rem; transform:translateX(-50%); color:rgba(222,233,255,.38); font-size:.58rem; letter-spacing:.16em; text-transform:lowercase; white-space:nowrap; opacity:0; transition:opacity 800ms var(--ease-out); }
+    .scene--memories.is-settled .memory-hud { opacity:1; }
+    .memory-detail { z-index:12; max-height:min(67svh, 500px); }
+    .memory-detail__date { display:block; margin:.1rem 0 .65rem; color:rgba(219,230,255,.38); font-size:.7rem; }
+
+    /* Sound */
+    .sound-toggle { position:absolute; z-index:60; top:var(--safe-top); right:calc(var(--safe-top) + .1rem); display:grid; place-items:center; width:2.65rem; height:2.65rem; padding:0; border:1px solid rgba(234,243,255,.13); border-radius:50%; background:rgba(4,9,21,.44); color:rgba(245,249,255,.77); cursor:pointer; backdrop-filter:blur(12px); -webkit-tap-highlight-color:transparent; transition:background 160ms var(--ease-out), transform 160ms var(--ease-out); }
+    .sound-toggle:hover { background:rgba(255,255,255,.1); }
+    .sound-toggle:active { transform:scale(.94); }
+    .sound-toggle__icon--on { display:none; }
+    .sound-toggle.is-on .sound-toggle__icon--on { display:block; }
+    .sound-toggle.is-on .sound-toggle__icon--off { display:none; }
+
+    @media (max-height: 500px) and (orientation: landscape) {
+      .opening-content { top:50%; transform:translate(-50%,-50%) scale(.82); }
+      .opening-message { margin-bottom:1rem; }
+      .watch-prompt { bottom:calc(var(--safe-bottom) + .1rem); gap:.45rem; padding:.3rem; }
+      .watch-prompt__question { font-size:1.15rem; }
+      .cosmic-action { min-height:2.55rem; }
+      .memory-intro { top:calc(var(--safe-top) - .3rem); }
+      .memory-detail, .planet-memory { max-height:72svh; }
+    }
+    @media (min-width: 700px) {
+      .watch-prompt { bottom:max(3rem, env(safe-area-inset-bottom)); }
+      .memory-intro { top:max(3.4rem, env(safe-area-inset-top)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration:.001ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; }
+      .scene { transition-duration:100ms; }
+    }
+  </style>
+</head>
+<body>
+  <main id="universe-app" class="universe-app" data-phase="opening">
+    <div id="cosmic-atmosphere" class="cosmic-atmosphere" aria-hidden="true">
+      <div class="nebula nebula--one"></div><div class="nebula nebula--two"></div><div class="nebula nebula--three"></div><div class="cosmic-vignette"></div>
+    </div>
+
+    <section id="scene-opening" class="scene scene--opening is-active" aria-label="Our Little Universe opening" aria-hidden="false">
+      <canvas id="particle-canvas" class="scene-canvas scene-canvas--particles" aria-hidden="true"></canvas>
+      <div id="star-layer" aria-hidden="true"></div>
+      <div id="opening-energy" class="opening-energy" aria-hidden="true"><div class="energy-core"></div><div class="energy-ring energy-ring--one"></div><div class="energy-ring energy-ring--two"></div><div class="energy-ring energy-ring--three"></div></div>
+      <div id="opening-content" class="opening-content">
+        <div id="opening-message" class="opening-message mm-text"><p class="opening-message__line opening-message__line--small">ချစ်ရသူလေးအတွက်</p><p class="opening-message__line opening-message__line--large">တစ်ခုပြစရာရှိတယ်</p></div>
+        <button id="particle-button" class="particle-button" type="button" aria-label="နိပ်ပါ" aria-describedby="opening-message"><span class="particle-button__aura" aria-hidden="true"></span><span class="particle-button__orbit particle-button__orbit--one" aria-hidden="true"></span><span class="particle-button__orbit particle-button__orbit--two" aria-hidden="true"></span><span class="particle-button__orbit particle-button__orbit--three" aria-hidden="true"></span><span class="particle-button__border" aria-hidden="true"></span><span class="particle-button__surface" aria-hidden="true"></span><span id="particle-button-text" class="particle-button__text mm-text" aria-hidden="true">နိပ်ပါ</span></button>
+      </div>
+      <div id="opening-status" class="opening-status" aria-hidden="true"><span class="opening-status__dot"></span><span>our little universe</span></div>
+    </section>
+
+    <section id="scene-travel" class="scene scene--travel" aria-label="Space travel" aria-hidden="true">
+      <canvas id="warp-canvas" class="scene-canvas scene-canvas--warp" aria-hidden="true"></canvas>
+      <div id="warp-streak-layer" aria-hidden="true"></div><div id="warp-core" aria-hidden="true"></div><div id="travel-message" class="sr-only">ချစ်တယ်</div><div id="white-light" aria-hidden="true"></div>
+    </section>
+
+    <section id="scene-solar" class="scene scene--solar" aria-label="Memory Solar System" aria-hidden="true">
+      <canvas id="solar-canvas" class="scene-canvas scene-canvas--solar" aria-hidden="true"></canvas>
+      <div id="solar-world" class="solar-world" aria-hidden="true"><div id="memory-sun" class="memory-sun"><div class="memory-sun__corona"></div><div class="memory-sun__image"></div><div class="memory-sun__glow"></div></div><div id="planet-system" class="planet-system">
+        <button class="memory-planet memory-planet--first" data-category="first-memories" type="button" aria-label="First Memories"><span class="memory-planet__body"></span><span class="memory-planet__glow"></span></button>
+        <button class="memory-planet memory-planet--cute" data-category="cute" type="button" aria-label="Cute Moments"><span class="memory-planet__body"></span><span class="memory-planet__glow"></span></button>
+        <button class="memory-planet memory-planet--random" data-category="random" type="button" aria-label="Random Moments"><span class="memory-planet__body"></span><span class="memory-planet__glow"></span></button>
+        <button class="memory-planet memory-planet--romantic" data-category="romantic" type="button" aria-label="Romantic Memories"><span class="memory-planet__body"></span><span class="memory-planet__glow"></span></button>
+        <button class="memory-planet memory-planet--funny" data-category="funny" type="button" aria-label="Funny Moments"><span class="memory-planet__body"></span><span class="memory-planet__glow"></span></button>
+        <button class="memory-planet memory-planet--special" data-category="special" type="button" aria-label="Special Words"><span class="memory-planet__body"></span><span class="memory-planet__glow"></span></button>
+        <button class="memory-planet memory-planet--rizz" data-category="rizz" type="button" aria-label="Rizz"><span class="memory-planet__body"></span><span class="memory-planet__glow"></span></button>
+        <button class="memory-planet memory-planet--future" data-category="future" type="button" aria-label="Future Dreams"><span class="memory-planet__body"></span><span class="memory-planet__glow"></span></button>
+      </div></div>
+      <aside id="planet-memory" class="planet-memory" aria-hidden="true" aria-label="Selected memory"><button id="planet-memory-close" class="planet-memory__close" type="button" aria-label="Close memory">×</button><div id="planet-memory-image" class="planet-memory__image" aria-hidden="true"></div><div class="planet-memory__content"><span id="planet-memory-category" class="planet-memory__category"></span><p id="planet-memory-text" class="planet-memory__text mm-text"></p></div></aside>
+      <div id="watch-prompt" class="watch-prompt" aria-hidden="true"><p id="watch-question" class="watch-prompt__question mm-text">အတူတူကြည့်ကြမလား?</p><div class="watch-prompt__actions"><button id="watch-yes" class="cosmic-action cosmic-action--primary mm-text" type="button"><span>ကြည့်မယ်</span></button><button id="watch-no" class="cosmic-action cosmic-action--secondary runaway-button mm-text" type="button"><span>မကြည့်ဘူး</span></button></div><p id="runaway-message" class="runaway-message mm-text" aria-live="polite"></p></div>
+    </section>
+
+    <section id="scene-love-speed" class="scene scene--love-speed" aria-label="Love light speed" aria-hidden="true"><canvas id="love-speed-canvas" class="scene-canvas scene-canvas--love-speed" aria-hidden="true"></canvas><div id="love-speed-core" class="love-speed-core" aria-hidden="true"></div></section>
+
+    <section id="scene-memories" class="scene scene--memories" aria-label="Floating memory universe" aria-hidden="true">
+      <canvas id="memory-canvas" class="scene-canvas scene-canvas--memory" aria-hidden="true"></canvas><div id="memory-atmosphere" class="memory-atmosphere" aria-hidden="true"><div class="memory-nebula memory-nebula--one"></div><div class="memory-nebula memory-nebula--two"></div></div><div id="special-memory-layer" class="special-memory-layer" aria-hidden="true"></div><div id="memory-object-layer" class="memory-object-layer"></div>
+      <div id="memory-intro" class="memory-intro" aria-live="polite"><p class="memory-intro__eyebrow">OUR LITTLE UNIVERSE</p><p class="memory-intro__title mm-text">မင်းနဲ့ပတ်သက်တဲ့<br>အမှတ်တရလေးတွေ...</p></div><div id="memory-hud" class="memory-hud" aria-hidden="true"><span class="memory-hud__status"></span><span>memories floating</span></div>
+      <aside id="memory-detail" class="memory-detail" aria-hidden="true" aria-label="Selected floating memory"><button id="memory-detail-close" class="memory-detail__close" type="button" aria-label="Close memory">×</button><div id="memory-detail-image" class="memory-detail__image" aria-hidden="true"></div><div><span id="memory-detail-category" class="memory-detail__category"></span><span id="memory-detail-date" class="memory-detail__date"></span><p id="memory-detail-text" class="memory-detail__text mm-text"></p></div></aside>
+    </section>
+
+    <button id="sound-toggle" class="sound-toggle" type="button" aria-label="Toggle sound" aria-pressed="false"><span class="sound-toggle__icon sound-toggle__icon--on" aria-hidden="true">♪</span><span class="sound-toggle__icon sound-toggle__icon--off" aria-hidden="true">×</span></button>
+    <div id="transition-overlay" class="transition-overlay" aria-hidden="true"><div class="transition-overlay__core"></div></div>
+  </main>
+
+  <noscript><p class="mm-text" style="position:fixed;inset:0;display:grid;place-items:center;margin:0;padding:2rem;background:#010207;color:#fff;text-align:center">ဒီ Universe ကိုကြည့်ဖို့ JavaScript ကို ဖွင့်ပေးပါနော်။</p></noscript>
+
+  <script>
+  (() => {
+    'use strict';
+    const $ = (selector, scope = document) => scope.querySelector(selector);
+    const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const easeOut = (t) => 1 - Math.pow(1 - clamp(t, 0, 1), 3);
+    const easeInOut = (t) => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    const dom = {
+      app: $('#universe-app'), overlay: $('#transition-overlay'), sound: $('#sound-toggle'),
+      scenes: { opening: $('#scene-opening'), travel: $('#scene-travel'), solar: $('#scene-solar'), loveSpeed: $('#scene-love-speed'), memories: $('#scene-memories') },
+      opening: { canvas: $('#particle-canvas'), button: $('#particle-button') },
+      travel: { canvas: $('#warp-canvas') },
+      solar: { canvas: $('#solar-canvas'), sun: $('#memory-sun'), prompt: $('#watch-prompt'), yes: $('#watch-yes'), no: $('#watch-no'), runaway: $('#runaway-message'), card: $('#planet-memory'), cardClose: $('#planet-memory-close'), cardImage: $('#planet-memory-image'), cardCategory: $('#planet-memory-category'), cardText: $('#planet-memory-text'), planets: $$('.memory-planet') },
+      love: { canvas: $('#love-speed-canvas'), core: $('#love-speed-core') },
+      memories: { canvas: $('#memory-canvas'), objectLayer: $('#memory-object-layer'), intro: $('#memory-intro'), hud: $('#memory-hud'), detail: $('#memory-detail'), detailClose: $('#memory-detail-close'), detailImage: $('#memory-detail-image'), detailCategory: $('#memory-detail-category'), detailDate: $('#memory-detail-date'), detailText: $('#memory-detail-text') }
+    };
+
+    const performanceProfile = (() => {
+      const cores = navigator.hardwareConcurrency || 4;
+      const memory = navigator.deviceMemory || 4;
+      const mobile = matchMedia('(max-width: 767px)').matches;
+      if (!mobile && cores >= 8 && memory >= 8) return { tier: 'high', multiplier: 1.2, dpr: 2 };
+      if (cores >= 6 && memory >= 4) return { tier: 'medium', multiplier: 1, dpr: 1.75 };
+      return { tier: 'low', multiplier: .64, dpr: 1.35 };
+    })();
+
+    const appState = { phase: 'opening', transitioning: false, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, soundEnabled: false, solarLeavingAt: 0, promptAttempts: 0, selectedSolar: null, selectedMemory: null, visualViewportHeight: 0, initialized: false };
+    const timers = new Set();
+    const later = (fn, ms) => { const id = setTimeout(() => { timers.delete(id); fn(); }, ms); timers.add(id); return id; };
+
+    const memories = [
+      { id:'first-memories', category:'First Memories', date:'the beginning', tint:[163,198,255], orbit:0, angle:4, speed:.110, depth:.8, text:'ပထမဆုံး စကားလေးတွေကနေ ဒီကမ္ဘာလေး စတင်လာခဲ့တယ်။' },
+      { id:'cute', category:'Cute Moments', date:'little smiles', tint:[255,199,222], orbit:1, angle:47, speed:-.078, depth:1, text:'နေ့တိုင်းမှာ အကြောင်းမရှိပဲ ပြုံးမိစေတဲ့ အခိုက်အတန့်လေးတွေ။' },
+      { id:'random', category:'Random Moments', date:'ordinary days', tint:[202,188,255], orbit:0, angle:92, speed:.114, depth:.7, text:'ဘာမှမဟုတ်သလိုပေမယ့် အမြဲမှတ်မိနေမယ့်နေ့တွေ။' },
+      { id:'romantic', category:'Romantic Memories', date:'with you', tint:[255,186,201], orbit:1, angle:138, speed:-.074, depth:.95, text:'မင်းနားမှာ ရှိရုံနဲ့ အချိန်က ပိုနူးညံ့သွားတယ်။' },
+      { id:'funny', category:'Funny Moments', date:'shared laughter', tint:[255,224,184], orbit:0, angle:184, speed:.104, depth:.72, text:'အတူရယ်ခဲ့တဲ့ အချိန်တွေက ကြယ်လေးတွေလို လင်းနေဆဲပဲ။' },
+      { id:'special', category:'Special Words', date:'kept close', tint:[255,232,204], orbit:2, angle:225, speed:.052, depth:1, special:true, text:'အရေးကြီးဆုံးအရာတွေက တိတ်တိတ်လေးနေပေမယ့် အလွန်တန်ဖိုးရှိတယ်။' },
+      { id:'rizz', category:'Rizz', date:'a lucky day', tint:[255,216,181], orbit:1, angle:269, speed:-.081, depth:.8, text:'မင်းကိုတွေ့တဲ့နေ့က ကံကောင်းမှုတစ်ခုပဲ။' },
+      { id:'future', category:'Future Dreams', date:'still ahead', tint:[194,238,216], orbit:2, angle:314, speed:.049, depth:.9, text:'နောက်လာမယ့် နေ့တွေမှာလည်း အတူတူကြယ်ကြည့်ကြမယ်။' }
+    ];
+    const memoryById = Object.fromEntries(memories.map(item => [item.id, item]));
+
+    const sceneEngines = { opening: null, travel: null, solar: null, love: null, memory: null };
+    const view = { width: 0, height: 0, dpr: 1, parallaxX: 0, parallaxY: 0 };
+
+    function log(message) { console.info(`[Our Little Universe] ${message}`); }
+    function changePhase(phase) { appState.phase = phase; dom.app.dataset.phase = phase; }
+    function setActiveScene(name) {
+      Object.entries(dom.scenes).forEach(([key, element]) => { const active = key === name; element.classList.toggle('is-active', active); element.setAttribute('aria-hidden', String(!active)); });
+    }
+    function lockTransition() { if (appState.transitioning) return false; appState.transitioning = true; dom.app.dataset.transitioning = 'true'; return true; }
+    function unlockTransition() { appState.transitioning = false; delete dom.app.dataset.transitioning; }
+    function tactile(pattern = [10]) { try { navigator.vibrate?.(pattern); } catch (_) {} }
+
+    function updateViewport() {
+      const vv = window.visualViewport;
+      view.width = Math.max(1, vv ? vv.width : innerWidth);
+      view.height = Math.max(1, vv ? vv.height : innerHeight);
+      view.dpr = Math.min(devicePixelRatio || 1, performanceProfile.dpr);
+      appState.visualViewportHeight = view.height;
+      dom.app.style.setProperty('--app-height', `${view.height}px`);
+      resizeAllCanvases();
+    }
+    function resizeCanvas(canvas) {
+      if (!canvas) return null;
+      const context = canvas.getContext('2d', { alpha: true });
+      canvas.width = Math.round(view.width * view.dpr); canvas.height = Math.round(view.height * view.dpr);
+      canvas.style.width = `${view.width}px`; canvas.style.height = `${view.height}px`;
+      context.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+      return context;
+    }
+    function resizeAllCanvases() { [dom.opening.canvas, dom.travel.canvas, dom.solar.canvas, dom.love.canvas, dom.memories.canvas].forEach(resizeCanvas); buildSolarGeometry(); positionMemoryObjects(); }
+
+    function makeParticles(count, options = {}) { return Array.from({ length: count }, () => ({ x: Math.random(), y: Math.random(), z: .15 + Math.random() * .85, size: options.minSize + Math.random() * (options.maxSize - options.minSize), alpha: options.minAlpha + Math.random() * (options.maxAlpha - options.minAlpha), phase: Math.random() * Math.PI * 2, drift: .2 + Math.random() * .8 })); }
+    function particleBudget(base) { return Math.max(20, Math.round(base * performanceProfile.multiplier)); }
+
+    /* Opening particle field */
+    const openingEngine = { particles: makeParticles(particleBudget(96), { minSize:.35, maxSize:1.6, minAlpha:.18, maxAlpha:.67 }), raf: 0 };
+    function drawOpening(now) {
+      const ctx = dom.opening.canvas.getContext('2d'); ctx.clearRect(0, 0, view.width, view.height);
+      const t = now * .001;
+      openingEngine.particles.forEach(p => { const x = p.x * view.width + view.parallaxX * p.z; const y = p.y * view.height + view.parallaxY * p.z; const alpha = p.alpha * (.6 + .4 * Math.sin(t * p.drift + p.phase)); ctx.fillStyle = `rgba(226,238,255,${alpha})`; ctx.beginPath(); ctx.arc(x, y, p.size * p.z, 0, Math.PI * 2); ctx.fill(); });
+      if (appState.phase === 'opening') openingEngine.raf = requestAnimationFrame(drawOpening);
+    }
+
+    /* Opening → travel */
+    const travelEngine = { particles: [], started: 0, raf: 0, active: false };
+    function initTravel() { travelEngine.particles = makeParticles(particleBudget(104), { minSize:.4, maxSize:1.7, minAlpha:.25, maxAlpha:.72 }).map(p => ({ ...p, angle:Math.atan2(p.y-.5,p.x-.5), radius:32 + Math.random() * Math.max(view.width, view.height) *.82 })); }
+    function drawTravel(now) {
+      if (!travelEngine.active) return;
+      const ctx = dom.travel.canvas.getContext('2d'); const elapsed = now - travelEngine.started; const duration = appState.reducedMotion ? 1450 : 3300; const p = clamp(elapsed / duration, 0, 1); const speed = easeInOut(p); const cx = view.width * .5, cy = view.height * .5;
+      ctx.fillStyle = `rgba(1,3,10,${.75 + p * .25})`; ctx.fillRect(0,0,view.width,view.height);
+      travelEngine.particles.forEach(star => { const distance = star.radius * (.09 + speed * 3.2); const length = 2 + speed * (p > .35 ? 230 : 40) * star.z; const x = cx + Math.cos(star.angle) * distance; const y = cy + Math.sin(star.angle) * distance; const px = cx + Math.cos(star.angle) * (distance - length); const py = cy + Math.sin(star.angle) * (distance - length); const alpha = star.alpha * (.22 + speed*.72) * (1 - p*.2); ctx.strokeStyle = `rgba(220,234,255,${alpha})`; ctx.lineWidth = Math.max(.45, star.size * (.58 + speed)); ctx.beginPath(); if (p < .17) ctx.arc(x,y,star.size,0,Math.PI*2); else { ctx.moveTo(px,py); ctx.lineTo(x,y); } ctx.stroke(); });
+      const radius = Math.min(view.width,view.height) * (.03 + easeOut(clamp((p-.53)/.47,0,1))*.74); const core = ctx.createRadialGradient(cx,cy,0,cx,cy,radius); core.addColorStop(0,`rgba(255,255,255,${.08 + p*.72})`); core.addColorStop(.3,`rgba(224,238,255,${p*.3})`); core.addColorStop(1,'rgba(230,243,255,0)'); ctx.fillStyle=core;ctx.fillRect(0,0,view.width,view.height);
+      if (p < 1) travelEngine.raf=requestAnimationFrame(drawTravel); else finishTravel();
+    }
+    function startTravel() {
+      if (!lockTransition() || appState.phase !== 'opening') return;
+      tactile([10]); changePhase('traveling'); dom.opening.button.disabled=true; dom.scenes.opening.style.pointerEvents='none'; dom.scenes.opening.style.opacity='0'; setActiveScene('travel'); initTravel(); travelEngine.active=true; travelEngine.started=performance.now(); travelEngine.raf=requestAnimationFrame(drawTravel); log('Space travel started.');
+    }
+    function finishTravel() { travelEngine.active=false; cancelAnimationFrame(travelEngine.raf); dom.overlay.classList.add('is-visible'); later(() => window.dispatchEvent(new CustomEvent('universe:space-travel-complete')), appState.reducedMotion ? 70 : 180); }
+
+    /* Solar particle system */
+    const solarEngine = { stars: [], sun: [], planets: [], started:0, raf:0, running:false, centerX:0, centerY:0, radii:[0,0,0], sunRadius:0 };
+    function buildSolarGeometry() {
+      const base=Math.min(view.width, view.height), scale=clamp(base/430,.74,1.35); solarEngine.centerX=view.width*.5; solarEngine.centerY=view.height < 620 ? view.height*.385 : view.height*.425; solarEngine.radii=[126*scale, 198*scale, 270*scale]; solarEngine.sunRadius=18*scale;
+      if (!solarEngine.stars.length) solarEngine.stars=makeParticles(particleBudget(95),{minSize:.35,maxSize:1.25,minAlpha:.16,maxAlpha:.62});
+      if (!solarEngine.sun.length) solarEngine.sun=Array.from({length:particleBudget(58)},()=>({a:Math.random()*Math.PI*2,d:Math.pow(Math.random(),1.6),size:.5+Math.random()*1.65,phase:Math.random()*6.28}));
+      solarEngine.planets=memories.map((memory,index)=>({ memory, particles:Array.from({length:Math.max(15,particleBudget(30))},()=>({a:Math.random()*Math.PI*2,d:Math.pow(Math.random(),1.55),size:.42+Math.random()*1.45,phase:Math.random()*6.28,escape:Math.random()<.09})), x:0,y:0,delay:index*.11 }));
+    }
+    function solarFormation(now) { return easeOut(clamp((now-solarEngine.started)/1600,0,1)); }
+    function drawSolar(now) {
+      if (!solarEngine.running) return;
+      const sceneActive=dom.scenes.solar.classList.contains('is-active'); if (!sceneActive) { solarEngine.running=false; return; }
+      const ctx=dom.solar.canvas.getContext('2d'); const t=now*.001; const form=solarFormation(now); const leaving=appState.phase==='leaving-solar'; const leaveP=leaving?clamp((now-appState.solarLeavingAt)/(appState.reducedMotion?1000:2450),0,1):0; const centerPull=easeInOut(leaveP);
+      ctx.clearRect(0,0,view.width,view.height);
+      solarEngine.stars.forEach(s=>{ const tw=appState.reducedMotion?.72:(.52+.48*Math.sin(t*s.drift+s.phase)); ctx.fillStyle=`rgba(240,247,255,${s.alpha*tw*(1-.25*centerPull)})`;ctx.beginPath();ctx.arc(s.x*view.width,s.y*view.height,s.size,0,Math.PI*2);ctx.fill(); });
+      ctx.save(); ctx.strokeStyle=`rgba(184,209,255,${.09*form*(1-centerPull*.8)})`; ctx.lineWidth=1; solarEngine.radii.forEach(r=>{const stretch=1+centerPull*.22;ctx.beginPath();ctx.ellipse(solarEngine.centerX,solarEngine.centerY,r*stretch,r*.81*stretch,0,0,Math.PI*2);ctx.stroke();});ctx.restore();
+      const haloR=solarEngine.sunRadius*(2.9+centerPull*16);const grad=ctx.createRadialGradient(solarEngine.centerX,solarEngine.centerY,0,solarEngine.centerX,solarEngine.centerY,haloR);grad.addColorStop(0,`rgba(255,250,238,${.45*form+.45*centerPull})`);grad.addColorStop(.21,`rgba(255,228,186,${.13*form+.16*centerPull})`);grad.addColorStop(1,'rgba(255,226,180,0)');ctx.fillStyle=grad;ctx.beginPath();ctx.arc(solarEngine.centerX,solarEngine.centerY,haloR,0,Math.PI*2);ctx.fill();
+      solarEngine.sun.forEach(p=>{const d=p.d*solarEngine.sunRadius*(1.45-centerPull*.7);const x=solarEngine.centerX+Math.cos(p.a)*d;const y=solarEngine.centerY+Math.sin(p.a)*d;ctx.fillStyle=`rgba(255,246,226,${(.35+(1-p.d)*.65)*form})`;ctx.beginPath();ctx.arc(x,y,p.size*(1+centerPull*1.4),0,Math.PI*2);ctx.fill();});
+      solarEngine.planets.forEach(planet=>{ const item=planet.memory; const localForm=easeOut(clamp((now-solarEngine.started)/1000-planet.delay,0,1)); const selected=appState.selectedSolar===item.id; const dimmed=appState.selectedSolar&&!selected; const angular= item.angle*Math.PI/180+(appState.reducedMotion?0:t*item.speed*(1-centerPull*.9)); const distance=solarEngine.radii[item.orbit]*(1-centerPull); const x=solarEngine.centerX+Math.cos(angular)*distance; const y=solarEngine.centerY+Math.sin(angular)*distance*.81; planet.x=x;planet.y=y; const button=$(`.memory-planet[data-category="${item.id}"]`); if(button){button.style.left=`${x}px`;button.style.top=`${y}px`;button.classList.toggle('is-awake',selected);button.classList.toggle('is-muted',!!dimmed);}
+        const brightness=(selected?1.33:dimmed?.38:1)*(1-centerPull*.2);const scale=selected?1.1:1;const halo=12*scale*(1+centerPull*.8);const h=ctx.createRadialGradient(x,y,0,x,y,halo);h.addColorStop(0,`rgba(${item.tint.join(',')},${.18*brightness*localForm})`);h.addColorStop(1,`rgba(${item.tint.join(',')},0)`);ctx.fillStyle=h;ctx.beginPath();ctx.arc(x,y,halo,0,Math.PI*2);ctx.fill();
+        planet.particles.forEach(p=>{let d=p.d*8.2*scale*(1-centerPull)+Math.sin(t*.8+p.phase)*.45;let alpha=(.35+(1-p.d)*.65)*brightness*localForm;if(p.escape&&!appState.reducedMotion){const cycle=(t*.075+p.phase)%1;d+=(6+cycle*13)*(selected?1.2:1);alpha*=1-cycle;}const px=x+Math.cos(p.a)*d,py=y+Math.sin(p.a)*d*.94;const mix=.17;const r=255*(1-mix)+item.tint[0]*mix,g=255*(1-mix)+item.tint[1]*mix,b=255*(1-mix)+item.tint[2]*mix;ctx.fillStyle=`rgba(${r|0},${g|0},${b|0},${clamp(alpha,0,1)})`;ctx.beginPath();ctx.arc(px,py,p.size*scale*(1+centerPull*.6),0,Math.PI*2);ctx.fill();});
+      });
+      if (dom.solar.sun) { dom.solar.sun.style.left=`${solarEngine.centerX}px`;dom.solar.sun.style.top=`${solarEngine.centerY}px`;dom.solar.sun.style.opacity=String(.45*(1-centerPull)); }
+      if (leaving && leaveP>=1) launchLoveSpeed(); else solarEngine.raf=requestAnimationFrame(drawSolar);
+    }
+    function startSolar() { setActiveScene('solar'); changePhase('solar-entering'); solarEngine.started=performance.now(); solarEngine.running=true; buildSolarGeometry(); solarEngine.raf=requestAnimationFrame(drawSolar); dom.overlay.classList.remove('is-visible'); later(()=>{ if(appState.phase==='solar-entering'){changePhase('watch-prompt');dom.solar.prompt.classList.add('is-visible');dom.solar.prompt.setAttribute('aria-hidden','false');log('Watch prompt ready.');unlockTransition();} }, appState.reducedMotion?450:2650); log('Solar System ready.'); }
+    function openSolarMemory(id) { if(appState.transitioning || !['watch-prompt','solar-idle'].includes(appState.phase)) return; const item=memoryById[id];if(!item)return; appState.selectedSolar=id;changePhase('memory-open');dom.solar.prompt.classList.remove('is-visible');dom.solar.prompt.setAttribute('aria-hidden','true');fillMemoryCard(item,dom.solar.cardImage,dom.solar.cardCategory,dom.solar.cardText);dom.solar.card.classList.add('is-visible');dom.solar.card.setAttribute('aria-hidden','false');tactile([9]);log('Memory selected.'); }
+    function closeSolarMemory() { if(appState.phase!=='memory-open')return; appState.selectedSolar=null;dom.solar.card.classList.remove('is-visible');dom.solar.card.setAttribute('aria-hidden','true');changePhase('watch-prompt');later(()=>{dom.solar.prompt.classList.add('is-visible');dom.solar.prompt.setAttribute('aria-hidden','false');},170);log('Memory closed.'); }
+    function fillMemoryCard(item,image,category,text) { category.textContent=item.category;text.textContent=item.text;image.classList.remove('has-image');image.style.backgroundImage=''; if(item.image){const probe=new Image();probe.onload=()=>{image.style.backgroundImage=`url("${item.image}")`;image.classList.add('has-image');};probe.onerror=()=>{image.classList.remove('has-image');};probe.src=item.image;} }
+
+    /* Solar prompt and cinematic departure */
+    function hideWatchPrompt() { dom.solar.prompt.classList.add('is-hiding'); dom.solar.prompt.classList.remove('is-visible'); dom.solar.prompt.setAttribute('aria-hidden','true'); }
+    function leaveSolar(source='yes') { if(appState.phase!=='watch-prompt'||!lockTransition())return; tactile([12]);hideWatchPrompt(); dom.scenes.solar.classList.add('is-leaving');changePhase('leaving-solar');appState.solarLeavingAt=performance.now();log(source==='yes'?'Entering Love Light Speed.':'Continuing through the universe.'); }
+    function safeMoveNoButton() {
+      const button=dom.solar.no;
+      button.style.transform='translate3d(0,0,0)';
+      const rect=button.getBoundingClientRect();
+      const yesRect=dom.solar.yes.getBoundingClientRect();
+      const margin=16;
+      const desired=[[34,0],[52,0],[68,0]][appState.promptAttempts-1] || [0,0];
+      let dx=clamp(desired[0],margin-rect.left,view.width-margin-rect.right);
+      const dy=clamp(desired[1],32-rect.top,view.height-32-rect.bottom);
+      const shiftedLeft=rect.left+dx;
+      const shiftedRight=shiftedLeft+rect.width;
+      const overlapsYes=shiftedLeft<yesRect.right+12 && shiftedRight>yesRect.left-12;
+      if(overlapsYes) {
+        const rightOfYes=yesRect.right+12-rect.left;
+        const leftOfYes=yesRect.left-12-rect.right;
+        const rightFits=rightOfYes<=view.width-margin-rect.right;
+        dx=clamp(rightFits?rightOfYes:leftOfYes,margin-rect.left,view.width-margin-rect.right);
+      }
+      button.style.transform=`translate3d(${dx}px,${dy}px,0)`;
+    }
+    function handleNo() { if(appState.phase!=='watch-prompt'||appState.transitioning)return;appState.promptAttempts++;tactile([7]);if(appState.promptAttempts<=3){safeMoveNoButton();const text=['ဟမ်… နည်းနည်းနီးလာပါဦး','ဒီမှာပဲ ရှိနေတယ်နော်','တစ်ခါတော့ လိုက်ကြည့်ပေးပါ'][appState.promptAttempts-1];dom.solar.runaway.textContent=text;dom.solar.runaway.classList.add('is-visible');return;}dom.solar.no.style.transform='translate3d(0,0,0)';dom.solar.runaway.textContent='အိုကေ… အတူတူသွားကြမယ်';dom.solar.runaway.classList.add('is-visible');later(()=>leaveSolar('no'),420); }
+
+    /* Love light speed */
+    const loveEngine={particles:[],started:0,raf:0,active:false};
+    function initLove(){loveEngine.particles=makeParticles(particleBudget(130),{minSize:.4,maxSize:1.6,minAlpha:.2,maxAlpha:.85}).map(p=>({...p,angle:Math.random()*Math.PI*2,radius:8+Math.random()*Math.max(view.width,view.height)*.45}));}
+    function drawLove(now){if(!loveEngine.active)return;const ctx=dom.love.canvas.getContext('2d');const duration=appState.reducedMotion?1600:4500;const elapsed=now-loveEngine.started,p=clamp(elapsed/duration,0,1),speed=easeInOut(p),cx=view.width*.5,cy=view.height*.5;ctx.fillStyle=`rgba(1,2,7,${.95-p*.55})`;ctx.fillRect(0,0,view.width,view.height);loveEngine.particles.forEach(star=>{const radius=star.radius*(.1+speed*4.4),length=2+speed*320*star.z;const x=cx+Math.cos(star.angle)*radius,y=cy+Math.sin(star.angle)*radius,px=cx+Math.cos(star.angle)*(radius-length),py=cy+Math.sin(star.angle)*(radius-length);ctx.strokeStyle=`rgba(234,242,255,${star.alpha*(.12+speed*.7)*(1-p*.2)})`;ctx.lineWidth=.35+star.size*(.42+speed*.85);ctx.beginPath();if(p<.2)ctx.arc(x,y,star.size,0,Math.PI*2);else{ctx.moveTo(px,py);ctx.lineTo(x,y);}ctx.stroke();});const r=Math.min(view.width,view.height)*(.02+speed*.92);const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,`rgba(255,255,255,${.2+speed*.8})`);g.addColorStop(.22,`rgba(232,242,255,${speed*.74})`);g.addColorStop(.6,`rgba(203,222,255,${speed*.19})`);g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.fillRect(0,0,view.width,view.height);if(p<1)loveEngine.raf=requestAnimationFrame(drawLove);else finishLove();}
+    function launchLoveSpeed(){dom.scenes.solar.classList.remove('is-active');dom.scenes.solar.setAttribute('aria-hidden','true');dom.scenes.solar.classList.remove('is-leaving');setActiveScene('loveSpeed');changePhase('love-speed');initLove();loveEngine.active=true;loveEngine.started=performance.now();dom.scenes.loveSpeed.classList.add('is-running');loveEngine.raf=requestAnimationFrame(drawLove);}
+    function finishLove(){loveEngine.active=false;dom.overlay.classList.add('is-visible');later(()=>{dom.scenes.loveSpeed.classList.remove('is-running');startMemoryUniverse();},appState.reducedMotion?80:240);}
+
+    /* Floating memory universe */
+    const memoryEngine={particles:[],started:0,raf:0,running:false,objects:[]};
+    function makeMemoryObjects(){if(memoryEngine.objects.length)return;const positions=[[18,39],[76,29],[68,61],[27,69],[50,48],[73,34],[35,28],[82,74]];memoryEngine.objects=memories.map((item,index)=>{const btn=document.createElement('button');btn.type='button';btn.className=`memory-object${item.special?' memory-object--special':''}`;btn.dataset.memory=item.id;btn.setAttribute('aria-label',item.category);btn.style.setProperty('--tilt',`${(index*29)%90-45}deg`);dom.memories.objectLayer.appendChild(btn);return{...item,button:btn,x:positions[index][0]/100,y:positions[index][1]/100,phase:index*.9,drift:.15+(index%3)*.04};});}
+    function positionMemoryObjects(){memoryEngine.objects.forEach(item=>{const x=item.x*view.width,y=item.y*view.height;item.button.style.left=`${x}px`;item.button.style.top=`${y}px`;});}
+    function drawMemoryUniverse(now){if(!memoryEngine.running)return;const ctx=dom.memories.canvas.getContext('2d'),t=now*.001;ctx.clearRect(0,0,view.width,view.height);memoryEngine.particles.forEach(p=>{const x=p.x*view.width+Math.sin(t*p.drift+p.phase)*4+p.z*view.parallaxX;const y=p.y*view.height+Math.cos(t*p.drift*.85+p.phase)*3+p.z*view.parallaxY;const a=p.alpha*(.52+.3*Math.sin(t*p.drift+p.phase));ctx.fillStyle=`rgba(226,237,255,${a})`;ctx.beginPath();ctx.arc(x,y,p.size*p.z,0,Math.PI*2);ctx.fill();});memoryEngine.objects.forEach((item,index)=>{const x=item.x*view.width+Math.sin(t*item.drift+item.phase)*5,y=item.y*view.height+Math.cos(t*item.drift*.83+item.phase)*4;item.button.style.left=`${x}px`;item.button.style.top=`${y}px`;});memoryEngine.raf=requestAnimationFrame(drawMemoryUniverse);}
+    function startMemoryUniverse(){setActiveScene('memories');changePhase('memory-universe-entering');dom.overlay.classList.remove('is-visible');memoryEngine.particles=makeParticles(particleBudget(130),{minSize:.35,maxSize:1.4,minAlpha:.1,maxAlpha:.53});makeMemoryObjects();positionMemoryObjects();memoryEngine.started=performance.now();memoryEngine.running=true;memoryEngine.raf=requestAnimationFrame(drawMemoryUniverse);later(()=>memoryEngine.objects.forEach((item,index)=>later(()=>item.button.classList.add('is-formed'),index*95)),appState.reducedMotion?100:650);later(()=>{dom.memories.intro.classList.add('is-visible');dom.scenes.memories.classList.add('is-settled');changePhase('memory-universe-idle');unlockTransition();log('Entering Memory Universe.');},appState.reducedMotion?350:1900);}
+    function openFloatingMemory(id){if(appState.transitioning||!['memory-universe-idle','memory-detail'].includes(appState.phase))return;const item=memoryById[id];if(!item)return;appState.selectedMemory=id;fillMemoryCard(item,dom.memories.detailImage,dom.memories.detailCategory,dom.memories.detailText);dom.memories.detailDate.textContent=item.date;dom.memories.detail.classList.add('is-visible');dom.memories.detail.setAttribute('aria-hidden','false');changePhase('memory-detail');tactile([9]);log('Memory selected.');}
+    function closeFloatingMemory(){if(appState.phase!=='memory-detail')return;dom.memories.detail.classList.remove('is-visible');dom.memories.detail.setAttribute('aria-hidden','true');appState.selectedMemory=null;changePhase('memory-universe-idle');log('Memory closed.');}
+
+    /* Gentle optional sound */
+    let audioContext=null,audioGain=null,audioOscillator=null;
+    async function setSound(enabled){appState.soundEnabled=enabled;dom.sound.classList.toggle('is-on',enabled);dom.sound.setAttribute('aria-pressed',String(enabled));if(!enabled){if(audioGain)audioGain.gain.setTargetAtTime(.0001,audioContext.currentTime,.12);return;}try{audioContext ||= new (window.AudioContext||window.webkitAudioContext)();await audioContext.resume();if(!audioGain){audioGain=audioContext.createGain();audioGain.gain.value=.0001;audioOscillator=audioContext.createOscillator();audioOscillator.type='sine';audioOscillator.frequency.value=164.81;audioOscillator.connect(audioGain).connect(audioContext.destination);audioOscillator.start();}audioGain.gain.setTargetAtTime(.018,audioContext.currentTime,.3);}catch(_){appState.soundEnabled=false;dom.sound.classList.remove('is-on');dom.sound.setAttribute('aria-pressed','false');}}
+
+    /* Input and lifecycle */
+    function handlePointer(event){view.parallaxX=clamp((event.clientX/view.width-.5)*7,-3.5,3.5);view.parallaxY=clamp((event.clientY/view.height-.5)*7,-3.5,3.5);dom.scenes.solar.style.setProperty('--parallax-x',`${view.parallaxX}px`);dom.scenes.solar.style.setProperty('--parallax-y',`${view.parallaxY}px`);}
+    function bindEvents(){
+      dom.opening.button.addEventListener('click',startTravel,{once:true});
+      dom.solar.planets.forEach(button=>button.addEventListener('click',()=>openSolarMemory(button.dataset.category)));
+      dom.solar.cardClose.addEventListener('click',closeSolarMemory);dom.solar.yes.addEventListener('click',()=>leaveSolar('yes'));dom.solar.no.addEventListener('click',handleNo);
+      dom.memories.objectLayer.addEventListener('click',event=>{const button=event.target.closest('.memory-object');if(button)openFloatingMemory(button.dataset.memory);});dom.memories.detailClose.addEventListener('click',closeFloatingMemory);
+      dom.sound.addEventListener('click',()=>setSound(!appState.soundEnabled));
+      document.addEventListener('keydown',event=>{if(event.key==='Escape'){closeSolarMemory();closeFloatingMemory();}});
+      window.addEventListener('pointermove',handlePointer,{passive:true});window.addEventListener('resize',updateViewport,{passive:true});window.visualViewport?.addEventListener('resize',updateViewport,{passive:true});window.addEventListener('orientationchange',()=>later(updateViewport,80),{passive:true});
+      window.addEventListener('universe:space-travel-complete',()=>{if(appState.phase==='traveling')startSolar();},{once:true});
+    }
+    function initialize(){if(appState.initialized)return;appState.initialized=true;dom.app.dataset.performance=performanceProfile.tier;dom.app.dataset.motion=appState.reducedMotion?'reduced':'full';updateViewport();buildSolarGeometry();bindEvents();openingEngine.raf=requestAnimationFrame(drawOpening);log(`Ready — ${performanceProfile.tier} performance profile.`);}
+    window.OurLittleUniverse={ state:appState, scenes:{get current(){return appState.phase;}}, transition:{begin:lockTransition,end:unlockTransition}, interaction:{updatePointer:handlePointer,tactileFeedback:tactile}, sound:{get enabled(){return appState.soundEnabled;},set:setSound}, landToMemorySolar:startSolar, showSolar:startSolar };
+    initialize();
+  })();
+  </script>
+</body>
+</html>
